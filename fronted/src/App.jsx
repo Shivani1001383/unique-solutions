@@ -1,14 +1,121 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import emailjs from '@emailjs/browser';
+import { productData } from './data';
 
 const App = () => {
+  // State for the cart/inquiry list
+  // Structure: [{ category: "Welding Rods", item: "MIG Wires", quantity: 5 }]
+  const [inquiryItems, setInquiryItems] = useState([]);
+
+  // State for the currently active product (to show in modal)
+  const [activeProduct, setActiveProduct] = useState(null);
+
+  // Temporary state for quantities inside the modal
+  const [tempQuantities, setTempQuantities] = useState({});
+
+  // Toggle/Open Product Modal
+  const openProductModal = (product) => {
+    setActiveProduct(product);
+    // Initialize temp quantities with 0 or existing cart values if needed
+    setTempQuantities({});
+  };
+
+  const closeProductModal = () => {
+    setActiveProduct(null);
+    setTempQuantities({});
+  };
+
+  // Handle quantity change in modal
+  const handleQuantityChange = (item, value) => {
+    if (value < 0) return;
+    setTempQuantities(prev => ({
+      ...prev,
+      [item]: value
+    }));
+  };
+
+  // Add selected items from modal to main inquiry list
+  const addItemsToInquiry = () => {
+    if (!activeProduct) return;
+
+    const newItems = [];
+    Object.entries(tempQuantities).forEach(([item, quantity]) => {
+      if (quantity > 0) {
+        newItems.push({
+          category: activeProduct.name,
+          item: item,
+          quantity: parseInt(quantity)
+        });
+      }
+    });
+
+    if (newItems.length === 0) {
+      alert("Please select at least one item with quantity greater than 0.");
+      return;
+    }
+
+    // Merge with existing items (update quantity if already exists, else add)
+    setInquiryItems(prevItems => {
+      const updatedItems = [...prevItems];
+      newItems.forEach(newItem => {
+        const existingIndex = updatedItems.findIndex(
+          i => i.category === newItem.category && i.item === newItem.item
+        );
+        if (existingIndex > -1) {
+          updatedItems[existingIndex].quantity = newItem.quantity; // Update/Overwrite quantity
+        } else {
+          updatedItems.push(newItem);
+        }
+      });
+      return updatedItems;
+    });
+
+    closeProductModal();
+    alert("Items added to inquiry list!");
+  };
+
+  // Remove item from inquiry list
+  const removeFromInquiry = (indexToRemove) => {
+    setInquiryItems(inquiryItems.filter((_, index) => index !== indexToRemove));
+  };
+
+  // Send inquiry email
+  // Send inquiry via WhatsApp
+  const sendInquiry = (e) => {
+    e.preventDefault();
+
+    if (inquiryItems.length === 0) {
+      alert('Please select products before sending inquiry.');
+      return;
+    }
+
+    // Format the product list for WhatsApp
+    const productLists = inquiryItems.map(
+      (item, idx) => `${idx + 1}. ${item.category} - ${item.item} (Qty: ${item.quantity})`
+    ).join('\n');
+
+    const message = `Hello Unique Solutions, I would like to inquire about the following items:\n\n${productLists}\n\nPlease provide a quote.`;
+
+    // Encode the message for URL
+    const encodedMessage = encodeURIComponent(message);
+    const phoneNumber = "918698126118"; // User's phone number
+
+    // Open WhatsApp
+    window.open(`https://wa.me/${phoneNumber}?text=${encodedMessage}`, '_blank');
+
+    // Optional: Clear selection after sending (or keep it if user wants to check again)
+    // setInquiryItems([]); 
+  };
+
   return (
     <div className="min-h-screen font-sans">
       {/* Header with Purple Gradient Background */}
+
       <header
-        className="bg-gradient-to-b from-purple-900 to-purple-700 text-white py-16 px-4 relative overflow-hidden"
+        className="bg-gradient-to-b from-purple-600 to-purple-400 text-white py-16 px-4 relative overflow-hidden"
         style={{
-          backgroundImage: 'ur[](https://static.vecteezy.com/system/resources/previews/020/040/564/non_2x/abstract-gradient-purple-background-suitable-for-website-banner-poster-sign-flyer-corporate-business-header-web-social-media-posts-landing-page-billboard-advertising-ads-campaign-free-vector.jpg)',
+          // backgroundImage: 'url(https://static.vecteezy.com/system/resources/previews/020/040/564/non_2x/abstract-gradient-purple-background-suitable-for-website-banner-poster-sign-flyer-corporate-business-header-web-social-media-posts-landing-page-billboard-advertising-ads-campaign-free-vector.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
@@ -84,41 +191,304 @@ const App = () => {
       <section className="py-16 px-4 bg-white">
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl font-bold text-purple-800 mb-12 relative inline-block">
-            Our Products
+            Our Products - Select for Inquiry
             <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 h-1 bg-purple-400 w-32 -mb-4"></div>
           </h2>
+          <p className="text-xl text-gray-600 mb-12">Click on a product to view items and select quantities.</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-            {/* Your 6 product cards */}
-            <div className="rounded-3xl shadow-2xl overflow-hidden bg-white">
-              <img src="https://www.lawsonproducts.com/cdn/shop/files/DV_ZoomOriginal_I_CW1058A.jpg?v=1738907653&width=1264" alt="Welding Rods" className="w-full h-72 object-cover" />
-              <div className="py-6 bg-purple-50"><h3 className="text-2xl font-bold text-purple-800">Welding Rods</h3></div>
+            {productData.map((product) => (
+              <div
+                key={product.id}
+                onClick={() => openProductModal(product)}
+                className="rounded-3xl shadow-2xl overflow-hidden bg-white cursor-pointer transition-all duration-300 hover:shadow-3xl hover:-translate-y-4 group"
+              >
+                <div className="relative overflow-hidden">
+                  <img
+                    src={product.img}
+                    alt={product.name}
+                    className="w-full h-72 object-cover transition duration-500 group-hover:scale-110"
+                    onError={(e) => { e.target.src = 'https://placehold.co/600x400/purple/white?text=' + encodeURIComponent(product.name); }}
+                  />
+                  {/* Overlay removed for debugging */}
+                </div>
+                <div className="py-6 bg-purple-50">
+                  <h3 className="text-2xl font-bold text-purple-800">{product.name}</h3>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Cart / Inquiry Summary Section */}
+          {inquiryItems.length > 0 && (
+            <div className="mt-16 bg-purple-50 rounded-3xl p-8 shadow-inner border border-purple-200">
+              <h3 className="text-3xl font-bold text-purple-900 mb-6">Your Inquiry List</h3>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left bg-white rounded-xl overflow-hidden shadow-sm">
+                  <thead className="bg-purple-800 text-white">
+                    <tr>
+                      <th className="p-4">Category</th>
+                      <th className="p-4">Item</th>
+                      <th className="p-4">Quantity</th>
+                      <th className="p-4">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-purple-100">
+                    {inquiryItems.map((item, index) => (
+                      <tr key={index} className="hover:bg-purple-50">
+                        <td className="p-4 font-semibold text-purple-900">{item.category}</td>
+                        <td className="p-4 text-gray-700">{item.item}</td>
+                        <td className="p-4 font-bold text-orange-600">{item.quantity}</td>
+                        <td className="p-4">
+                          <button
+                            onClick={() => removeFromInquiry(index)}
+                            className="text-red-500 hover:text-red-700 font-bold hover:underline"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-8 flex justify-end">
+                <button
+                  onClick={sendInquiry}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-12 rounded-full text-2xl shadow-lg transition transform hover:scale-105"
+                >
+                  Send Inquiry Now 🚀
+                </button>
+              </div>
             </div>
-            <div className="rounded-3xl shadow-2xl overflow-hidden bg-white">
-              <img src="https://cdn11.bigcommerce.com/s-fd9xotfhbf/images/stencil/1280w/image-manager/banner-main.jpg?t=1731957497" alt="Nuts & Bolts" className="w-full h-72 object-cover" />
-              <div className="py-6 bg-purple-50"><h3 className="text-2xl font-bold text-purple-800">Nuts & Bolts</h3></div>
+          )}
+        </div>
+      </section>
+
+      {/* Product Selection Modal */}
+      {activeProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70 backdrop-blur-sm"
+          onClick={closeProductModal}>
+          <div
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative animate-fade-in-up"
+            onClick={e => e.stopPropagation()} // Prevent close on modal click
+          >
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-purple-900 text-white px-8 py-5 flex justify-between items-center z-10">
+              <h3 className="text-2xl font-bold">{activeProduct.name}</h3>
+              <button
+                onClick={closeProductModal}
+                className="text-white hover:text-gray-300 text-3xl font-bold leading-none"
+              >
+                &times;
+              </button>
             </div>
-            <div className="rounded-3xl shadow-2xl overflow-hidden bg-white">
-              <img src="https://www.dnow.com/hubfs/WC/Images/Products/Valves%20and%20Actuation/valves_featured-image.jpg" alt="Valves" className="w-full h-72 object-cover" />
-              <div className="py-6 bg-purple-50"><h3 className="text-2xl font-bold text-purple-800">Valves</h3></div>
+
+            {/* Modal Body */}
+            <div className="p-8">
+              <p className="text-gray-600 mb-6 italic">Select items and enter the quantity you need.</p>
+
+              <div className="space-y-4">
+                {activeProduct.items.map((item, index) => (
+                  <div key={index} className="flex flex-col sm:flex-row items-center justify-between p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition border border-purple-100">
+                    <label className="font-semibold text-purple-900 text-lg mb-2 sm:mb-0 cursor-pointer flex-grow">
+                      {item}
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-gray-500">Qty:</span>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        className="w-24 p-2 rounded-lg border border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-center font-bold text-gray-700"
+                        value={tempQuantities[item] || ''}
+                        onChange={(e) => handleQuantityChange(item, e.target.value)}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="rounded-3xl shadow-2xl overflow-hidden bg-white">
-              <img src="https://jcblhandtools.com/wp-content/uploads/2024/12/Guide-to-Workshop-Hand-Tools-2.webp" alt="Tools & Equipment" className="w-full h-72 object-cover" />
-              <div className="py-6 bg-purple-50"><h3 className="text-2xl font-bold text-purple-800">Tools & Equipment</h3></div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-white p-6 border-t border-gray-100 flex justify-end gap-4">
+              <button
+                onClick={closeProductModal}
+                className="px-6 py-3 rounded-full text-purple-700 font-bold hover:bg-purple-100 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={addItemsToInquiry}
+                className="bg-purple-700 hover:bg-purple-800 text-white px-8 py-3 rounded-full font-bold shadow-lg transition transform hover:scale-105"
+              >
+                Add to Inquiry List
+              </button>
             </div>
-            <div className="rounded-3xl shadow-2xl overflow-hidden bg-white">
-              <img src="https://emag.directindustry.com/wp-content/uploads/sites/3/iStock-947254500.jpg" alt="Safety Gear" className="w-full h-72 object-cover" />
-              <div className="py-6 bg-purple-50"><h3 className="text-2xl font-bold text-purple-800">Safety Gear</h3></div>
+          </div>
+        </div>
+      )}
+
+      {/* Testimonials Section */}
+      <section className="py-16 px-4 bg-gray-50">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-purple-800 mb-12 relative inline-block">
+            What Our Clients Say
+            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 h-1 bg-purple-400 w-40 -mb-4"></div>
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Testimonial 1 */}
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-purple-100 hover:shadow-2xl transition-shadow duration-300">
+              <div className="p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 text-2xl font-bold">
+                    SK
+                  </div>
+                  <div className="text-left">
+                    <h4 className="text-xl font-bold text-purple-900">Bhairavnath Sugar Works Barshi.</h4>
+                    {/* <p className="text-gray-600">Manufacturing Unit Owner</p> */}
+                  </div>
+                </div>
+                <p className="text-gray-700 text-lg leading-relaxed italic">
+                  "Unique Solutions has been our go-to supplier for the last 4 years. Their welding rods and fasteners are always top quality, and delivery is super fast even for urgent requirements."
+                </p>
+                <div className="mt-6 flex justify-center gap-1 text-orange-500">
+                  ★★★★★
+                </div>
+              </div>
             </div>
-            <div className="rounded-3xl shadow-2xl overflow-hidden bg-white">
-              <img src="https://thumbs.dreamstime.com/b/close-up-precision-planetary-gear-assembly-four-interlocking-steel-gears-central-shaft-showcasing-industrial-413988879.jpg" alt="Machinery Parts" className="w-full h-72 object-cover" />
-              <div className="py-6 bg-purple-50"><h3 className="text-2xl font-bold text-purple-800">Machinery Parts</h3></div>
+
+            {/* Testimonial 2 */}
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-purple-100 hover:shadow-2xl transition-shadow duration-300">
+              <div className="p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 text-2xl font-bold">
+                    RP
+                  </div>
+                  <div className="text-left">
+                    <h4 className="text-xl font-bold text-purple-900">Bhairavnath Sugar Works, Unit 01, Sonari</h4>
+                    {/* <p className="text-gray-600">Construction Contractor</p> */}
+                  </div>
+                </div>
+                <p className="text-gray-700 text-lg leading-relaxed italic">
+                  "Best service in Aurangabad! Competitive prices, genuine products, and very helpful staff. They saved us during a tight project deadline."
+                </p>
+                <div className="mt-6 flex justify-center gap-1 text-orange-500">
+                  ★★★★★
+                </div>
+              </div>
             </div>
+
+            {/* Testimonial 3 */}
+
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-purple-100 hover:shadow-2xl transition-shadow duration-300">
+              <div className="p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 text-2xl font-bold">
+                    AM
+                  </div>
+                  <div className="text-left">
+                    <h4 className="text-xl font-bold text-purple-900">Bhairavnath Sugar Works, Shivajinagar</h4>
+                    {/* <p className="text-gray-600">Automobile Workshop Owner</p> */}
+                  </div>
+                </div>
+                <p className="text-gray-700 text-lg leading-relaxed italic">
+                  "Reliable supplier for bearings, tools, and safety gear. Always ready to source rare items quickly. Highly recommended for industrial needs."
+                </p>
+                <div className="mt-6 flex justify-center gap-1 text-orange-500">
+                  ★★★★★
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-purple-100 hover:shadow-2xl transition-shadow duration-300">
+              <div className="p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 text-2xl font-bold">
+                    AM
+                  </div>
+                  <div className="text-left">
+                    <h4 className="text-xl font-bold text-purple-900">Alankar Engineering, Chikalthana MIDC</h4>
+                    {/* <p className="text-gray-600">Automobile Workshop Owner</p> */}
+                  </div>
+                </div>
+                <p className="text-gray-700 text-lg leading-relaxed italic">
+                  "Good Service Best experience"
+                </p>
+                <div className="mt-6 flex justify-center gap-1 text-orange-500">
+                  ★★★★★
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-purple-100 hover:shadow-2xl transition-shadow duration-300">
+              <div className="p-8">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-16 h-16 rounded-full bg-purple-200 flex items-center justify-center text-purple-800 text-2xl font-bold">
+                    RP
+                  </div>
+                  <div className="text-left">
+                    <h4 className="text-xl font-bold text-purple-900">Pranshu Electricals</h4>
+                    {/* <p className="text-gray-600">Construction Contractor</p> */}
+                  </div>
+                </div>
+                <p className="text-gray-700 text-lg leading-relaxed italic">
+                  "Best service in Chhatrapati Sambhajinagar! Competitive prices, genuine products, and very helpful staff. They saved us during a tight project deadline."
+                </p>
+                <div className="mt-6 flex justify-center gap-1 text-orange-500">
+                  ★★★★
+                </div>
+              </div>
+            </div>
+
+            {/* Optional: Add 1-2 more cards if you want 4–6 testimonials */}
+          </div>
+
+          {/* Optional: View More Button */}
+          <div className="mt-12">
+            <button className="bg-purple-700 hover:bg-purple-800 text-white px-10 py-4 rounded-full text-xl font-semibold shadow-lg transition">
+              See More Reviews
+            </button>
           </div>
         </div>
       </section>
 
+      {/* Why Choose Us Section */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-purple-800 mb-12 relative inline-block">
+            Why Choose Unique Solutions?
+            <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 h-1 bg-purple-400 w-40 -mb-4"></div>
+          </h2>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="bg-purple-50 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition">
+              <div className="text-6xl mb-6">🚚</div>
+              <h3 className="text-2xl font-bold text-purple-900 mb-4">Fast Delivery</h3>
+              <p className="text-gray-700">Right material at the right time – urgent orders handled promptly across Maharashtra.</p>
+            </div>
+
+            <div className="bg-purple-50 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition">
+              <div className="text-6xl mb-6">🏆</div>
+              <h3 className="text-2xl font-bold text-purple-900 mb-4">Premium Quality</h3>
+              <p className="text-gray-700">Only genuine, branded industrial materials from trusted manufacturers.</p>
+            </div>
+
+            <div className="bg-purple-50 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition">
+              <div className="text-6xl mb-6">💰</div>
+              <h3 className="text-2xl font-bold text-purple-900 mb-4">Competitive Pricing</h3>
+              <p className="text-gray-700">Best rates in the market without compromising on quality.</p>
+            </div>
+
+            <div className="bg-purple-50 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition">
+              <div className="text-6xl mb-6">👨‍💼</div>
+              <h3 className="text-2xl font-bold text-purple-900 mb-4">Expert Support</h3>
+              <p className="text-gray-700">5+ years experience – we guide you to the perfect solution for your needs.</p>
+            </div>
+          </div>
+        </div>
+      </section>
       {/* MLA Section */}
       <section className="py-16 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
@@ -279,7 +649,7 @@ const App = () => {
       <section
         className="py-16 px-4 text-white"
         style={{
-          backgroundImage: 'ur[](https://static.vecteezy.com/system/resources/previews/014/326/271/non_2x/purple-gradient-abstract-background-with-line-and-halftone-element-for-wallpaper-landing-page-or-website-banner-vector.jpg)',
+          // backgroundImage: 'url(https://static.vecteezy.com/system/resources/previews/014/326/271/non_2x/purple-gradient-abstract-background-with-line-and-halftone-element-for-wallpaper-landing-page-or-website-banner-vector.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
@@ -331,6 +701,16 @@ const App = () => {
           </div>
 
           <p className="text-lg mt-8">© 2025 Unique Solutions. All Rights Reserved.</p>
+          <p className="text-lg mt-6">
+            <a
+              href="https://maps.google.com/maps?q=Gut+No.+240,+Aaptgaon,+Beed+By+Pass+Road,+Chhatrapati+Sambhajinagar,+Maharashtra+431001"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-white-700 hover:bg-white-600 px-6 py-3 rounded-full font-bold transition"
+            >
+              📍 View Location on Google Maps
+            </a>
+          </p>
         </div>
       </footer>
     </div>
@@ -338,198 +718,3 @@ const App = () => {
 };
 
 export default App;
-
-
-
-
-
-
-
-
-
-// import React, { useState } from 'react';
-
-// const App = () => {
-//   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-//   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
-//   const closeMobileMenu = () => setMobileMenuOpen(false);
-
-//   const scrollToSection = (e, id) => {
-//     e.preventDefault();
-//     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-//     closeMobileMenu();
-//   };
-
-//   return (
-//     <div className="min-h-screen font-sans relative">
-//       {/* Fixed Responsive Navbar with MLA */}
-//       <nav className="fixed top-0 left-0 right-0 bg-purple-800 text-white shadow-2xl z-60">
-//         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-//           <div className="text-2xl md:text-3xl font-extrabold tracking-wider">
-//             UNIQUE SOLUTIONS
-//           </div>
-
-//           {/* Desktop Menu - MLA Added */}
-//           <div className="hidden md:flex space-x-8 text-lg font-semibold">
-//             <a href="#home" onClick={(e) => scrollToSection(e, 'home')} className="hover:text-orange-400 transition duration-300">Home</a>
-//             <a href="#products" onClick={(e) => scrollToSection(e, 'products')} className="hover:text-orange-400 transition duration-300">Products</a>
-//             <a href="#about" onClick={(e) => scrollToSection(e, 'about')} className="hover:text-orange-400 transition duration-300">About</a>
-//             <a href="#mla" onClick={(e) => scrollToSection(e, 'mla')} className="hover:text-orange-400 transition duration-300">MLA</a>
-//             <a href="#contact" onClick={(e) => scrollToSection(e, 'contact')} className="hover:text-orange-400 transition duration-300">Contact</a>
-//           </div>
-
-//           {/* Mobile Hamburger */}
-//           <button onClick={toggleMobileMenu} className="md:hidden text-3xl focus:outline-none">
-//             ☰
-//           </button>
-//         </div>
-
-//         {/* Mobile Menu - MLA Added */}
-//         {mobileMenuOpen && (
-//           <div className="md:hidden bg-purple-900 px-4 py-6 space-y-4 text-center text-lg font-semibold">
-//             <a href="#home" onClick={(e) => scrollToSection(e, 'home')} className="block py-2 hover:text-orange-400">Home</a>
-//             <a href="#products" onClick={(e) => scrollToSection(e, 'products')} className="block py-2 hover:text-orange-400">Products</a>
-//             <a href="#about" onClick={(e) => scrollToSection(e, 'about')} className="block py-2 hover:text-orange-400">About</a>
-//             <a href="#mla" onClick={(e) => scrollToSection(e, 'mla')} className="block py-2 hover:text-orange-400">MLA</a>
-//             <a href="#contact" onClick={(e) => scrollToSection(e, 'contact')} className="block py-2 hover:text-orange-400">Contact</a>
-//           </div>
-//         )}
-//       </nav>
-
-//       {/* Main Content */}
-//       <div className="pt-20">
-//         {/* Header */}
-//         <header id="home" className="bg-gradient-to-b from-purple-900 to-purple-700 text-white py-20 px-4">
-//           <div className="max-w-7xl mx-auto text-center">
-//             <h1 className="text-5xl top-0 sm:text-6xl md:text-7xl font-extrabold mb-6 drop-shadow-2xl">
-//               UNIQUE SOLUTIONS
-//             </h1>
-//             <p className="text-2xl sm:text-3xl md:text-4xl font-bold uppercase text-orange-400 mb-8">
-//               ALL TYPES OF INDUSTRIAL MATERIAL SUPPLIER
-//             </p>
-//             <div className="bg-purple-800 inline-block px-6 py-3 rounded-full font-semibold shadow-xl">
-//               GSTIN: 27BXVPP7133C1Z3
-//             </div>
-//           </div>
-//         </header>
-
-//         {/* Contact Bar */}
-//         <div className="bg-gradient-to-r from-gray-100 to-gray-50 shadow-lg py-6 px-4">
-//           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 text-center">
-//             <div className="flex items-center justify-center gap-4">
-//               <span className="text-4xl">📞</span>
-//               <p className="text-xl font-bold text-purple-900">+91 86981 26118</p>
-//             </div>
-//             <div className="flex items-center justify-center gap-4">
-//               <span className="text-4xl">✉️</span>
-//               <p className="text-lg font-bold text-purple-900 break-all">uniquesolutions3203@gmail.com</p>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Products Section - All 6 images added */}
-//         <section id="products" className="py-16 px-4 bg-white">
-//           <div className="max-w-7xl mx-auto text-center">
-//             <h2 className="text-4xl md:text-5xl font-bold text-purple-800 mb-12">Our Products</h2>
-//             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-//               <div className="rounded-3xl shadow-2xl overflow-hidden bg-white">
-//                 <img src="https://www.lawsonproducts.com/cdn/shop/files/DV_ZoomOriginal_I_CW1058A.jpg?v=1738907653&width=1264" alt="Welding Rods" className="w-full h-72 object-cover" />
-//                 <div className="py-6 bg-purple-50"><h3 className="text-2xl font-bold text-purple-800">Welding Rods</h3></div>
-//               </div>
-//               <div className="rounded-3xl shadow-2xl overflow-hidden bg-white">
-//                 <img src="https://cdn11.bigcommerce.com/s-fd9xotfhbf/images/stencil/1280w/image-manager/banner-main.jpg?t=1731957497" alt="Nuts & Bolts" className="w-full h-72 object-cover" />
-//                 <div className="py-6 bg-purple-50"><h3 className="text-2xl font-bold text-purple-800">Nuts & Bolts</h3></div>
-//               </div>
-//               <div className="rounded-3xl shadow-2xl overflow-hidden bg-white">
-//                 <img src="https://www.dnow.com/hubfs/WC/Images/Products/Valves%20and%20Actuation/valves_featured-image.jpg" alt="Valves" className="w-full h-72 object-cover" />
-//                 <div className="py-6 bg-purple-50"><h3 className="text-2xl font-bold text-purple-800">Valves</h3></div>
-//               </div>
-//               <div className="rounded-3xl shadow-2xl overflow-hidden bg-white">
-//                 <img src="https://jcblhandtools.com/wp-content/uploads/2024/12/Guide-to-Workshop-Hand-Tools-2.webp" alt="Tools & Equipment" className="w-full h-72 object-cover" />
-//                 <div className="py-6 bg-purple-50"><h3 className="text-2xl font-bold text-purple-800">Tools & Equipment</h3></div>
-//               </div>
-//               <div className="rounded-3xl shadow-2xl overflow-hidden bg-white">
-//                 <img src="https://emag.directindustry.com/wp-content/uploads/sites/3/iStock-947254500.jpg" alt="Safety Gear" className="w-full h-72 object-cover" />
-//                 <div className="py-6 bg-purple-50"><h3 className="text-2xl font-bold text-purple-800">Safety Gear</h3></div>
-//               </div>
-//               <div className="rounded-3xl shadow-2xl overflow-hidden bg-white">
-//                 <img src="https://thumbs.dreamstime.com/b/close-up-precision-planetary-gear-assembly-four-interlocking-steel-gears-central-shaft-showcasing-industrial-413988879.jpg" alt="Machinery Parts" className="w-full h-72 object-cover" />
-//                 <div className="py-6 bg-purple-50"><h3 className="text-2xl font-bold text-purple-800">Machinery Parts</h3></div>
-//               </div>
-//             </div>
-//           </div>
-//         </section>
-
-//         {/* About Us Section */}
-//         <section id="about" className="py-16 px-4 bg-gray-50">
-//           <div className="max-w-7xl mx-auto text-center">
-//             <h2 className="text-4xl md:text-5xl font-bold text-purple-800 mb-12">About Us</h2>
-//             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-//               <div className="text-left text-lg text-gray-700 space-y-6">
-//                 <p><strong>Unique Solutions</strong> is a reliable and trusted supplier of all types of industrial materials, based in Chhatrapati Sambhajinagar (Aurangabad), Maharashtra.</p>
-//                 <p>We provide high-quality products including welding rods, nuts & bolts, valves, tools, safety gear, machinery parts, pipes, bearings, cutting tools, abrasives, lubricants, and much more.</p>
-//                 <p>Our commitment is to deliver the right material at the right time, with competitive pricing and outstanding customer service.</p>
-//                 <p>With over 5 years of experience and more than 100 satisfied customers, we take pride in building long-term relationships based on trust and quality.</p>
-//               </div>
-//               <div>
-//                 <img src="https://media.istockphoto.com/id/1390717518/photo/people-working-in-a-large-distribution-warehouse.jpg?s=612x612&w=0&k=20&c=UuzBAfsHfpNWHenn7MQoCG4I3gGCAdhGHCduuiqUsM8=" alt="Team" className="rounded-3xl shadow-2xl w-full object-cover h-96" />
-//               </div>
-//             </div>
-//           </div>
-//         </section>
-
-//         {/* MLA Section - All 9 categories with images not needed, but full list */}
-//         <section id="mla" className="py-16 px-4 bg-white">
-//           <div className="max-w-7xl mx-auto">
-//             <h2 className="text-4xl md:text-5xl font-bold text-purple-800 text-center mb-12">Material Categories (MLA)</h2>
-//             <div className="space-y-4">
-//               {/* 1 to 9 categories - full list as before */}
-//               {/* Example first one */}
-//               <details className="group bg-white rounded-2xl shadow-lg overflow-hidden">
-//                 <summary className="flex justify-between items-center px-8 py-6 text-2xl font-bold text-purple-800 cursor-pointer hover:bg-purple-50">
-//                   Welding Materials <span className="text-3xl group-open:rotate-180 transition">▼</span>
-//                 </summary>
-//                 <div className="px-8 pb-8 bg-purple-50">
-//                   <ul className="grid grid-cols-1 md:grid-cols-3 gap-4 text-lg">
-//                     <li>⚡ Mild Steel Electrodes</li>
-//                     <li>⚡ Stainless Steel Rods</li>
-//                     <li>⚡ Cast Iron Electrodes</li>
-//                     <li>⚡ MIG Wires</li>
-//                     <li>⚡ TIG Filler Rods</li>
-//                     <li>⚡ Flux Cored Wires</li>
-//                   </ul>
-//                 </div>
-//               </details>
-//               {/* Add the other 8 categories in the same format */}
-//             </div>
-//           </div>
-//         </section>
-
-//         {/* Contact Section */}
-//         <section id="contact" className="py-16 px-4 text-white" style={{ backgroundImage: 'ur[](https://static.vecteezy.com/system/resources/previews/014/326/271/non_2x/purple-gradient-abstract-background-vector.jpg)', backgroundSize: 'cover' }}>
-//           {/* Your form and WhatsApp button */}
-//         </section>
-
-//         {/* Footer */}
-//         <footer className="bg-purple-900 text-white py-12 text-center">
-//           <div className="max-w-7xl mx-auto px-4">
-//             <p className="text-2xl font-bold mb-6">UNIQUE SOLUTIONS</p>
-//             <div className="flex items-center justify-center gap-4 mb-6">
-//               <span className="text-4xl">📍</span>
-//               <p className="text-lg leading-relaxed">
-//                 Gut No. 240, Aaptgaon,<br />
-//                 Beed By Pass Road,<br />
-//                 Chhatrapati Sambhajinagar - 431 001<br />
-//                 Maharashtra, India
-//               </p>
-//             </div>
-//             <p className="text-lg mt-8">© 2025 Unique Solutions. All Rights Reserved.</p>
-//           </div>
-//         </footer>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default App;
