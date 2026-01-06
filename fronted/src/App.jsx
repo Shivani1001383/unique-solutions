@@ -10,6 +10,7 @@ const App = () => {
 
   // State for the currently active product (to show in modal)
   const [activeProduct, setActiveProduct] = useState(null);
+  const [selectedCompany, setSelectedCompany] = useState('');
 
   // Temporary state for quantities inside the modal
   const [tempQuantities, setTempQuantities] = useState({});
@@ -19,11 +20,13 @@ const App = () => {
     setActiveProduct(product);
     // Initialize temp quantities with 0 or existing cart values if needed
     setTempQuantities({});
+    setSelectedCompany('');
   };
 
   const closeProductModal = () => {
     setActiveProduct(null);
     setTempQuantities({});
+    setSelectedCompany('');
   };
 
   // Handle quantity change in modal
@@ -39,12 +42,19 @@ const App = () => {
   const addItemsToInquiry = () => {
     if (!activeProduct) return;
 
+    // Validation for All Products
+    if (!selectedCompany) {
+      alert("Please select a company first.");
+      return;
+    }
+
     const newItems = [];
     Object.entries(tempQuantities).forEach(([item, quantity]) => {
       if (quantity > 0) {
+        const finalItemName = selectedCompany ? `${item} (${selectedCompany})` : item;
         newItems.push({
           category: activeProduct.name,
-          item: item,
+          item: finalItemName,
           quantity: parseInt(quantity)
         });
       }
@@ -287,29 +297,45 @@ const App = () => {
             </div>
 
             {/* Modal Body */}
-            <div className="p-8">
+            <div className="p-10">
               <p className="text-gray-600 mb-6 italic">Select items and enter the quantity you need.</p>
 
-              <div className="space-y-4">
-                {activeProduct.items.map((item, index) => (
-                  <div key={index} className="flex flex-col sm:flex-row items-center justify-between p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition border border-purple-100">
-                    <label className="font-semibold text-purple-900 text-lg mb-2 sm:mb-0 cursor-pointer flex-grow">
-                      {item}
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-gray-500">Qty:</span>
-                      <input
-                        type="number"
-                        min="0"
-                        placeholder="0"
-                        className="w-24 p-2 rounded-lg border border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-center font-bold text-gray-700"
-                        value={tempQuantities[item] || ''}
-                        onChange={(e) => handleQuantityChange(item, e.target.value)}
-                      />
-                    </div>
-                  </div>
-                ))}
+              <div className="mb-11">
+                <label className="block text-purple-900 font-bold mb-2">Select Company:</label>
+                <select
+                  className="w-full p-3 rounded-xl border border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  value={selectedCompany}
+                  onChange={(e) => setSelectedCompany(e.target.value)}
+                >
+                  <option value="">-- Select Company --</option>
+                  {activeProduct.companies?.map((company, index) => (
+                    <option key={index} value={company}>{company}</option>
+                  ))}
+                </select>
               </div>
+
+              {selectedCompany && (
+                <div className="space-y-4">
+                  {activeProduct.items.map((item, index) => (
+                    <div key={index} className="flex flex-col sm:flex-row items-center justify-between p-4 bg-purple-50 rounded-xl hover:bg-purple-100 transition border border-purple-100">
+                      <label className="font-semibold text-purple-900 text-lg mb-2 sm:mb-0 cursor-pointer flex-grow">
+                        {item}
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-500">Qty:</span>
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          className="w-24 p-2 rounded-lg border border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 text-center font-bold text-gray-700"
+                          value={tempQuantities[item] || ''}
+                          onChange={(e) => handleQuantityChange(item, e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Modal Footer */}

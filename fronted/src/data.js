@@ -10,7 +10,8 @@ export const productData = [
             "MIG Wires",
             "TIG Filler Rods",
             "Flux Cored Wires"
-        ]
+        ],
+        companies: ["Manglam", "Ador", "Esab", "Superon", "Patton"]
     },
     {
         id: 2,
@@ -23,7 +24,8 @@ export const productData = [
             "Washers (All Types)",
             "Screws (Self-Tapping, Machine)",
             "Rivets & Circlips"
-        ]
+        ],
+        companies: ["Unbrako", "TVS", "LPS", "Pooja Forge", "Local"]
     },
     {
         id: 3,
@@ -36,7 +38,8 @@ export const productData = [
             "Butterfly Valves",
             "Globe Valves",
             "Strainers"
-        ]
+        ],
+        companies: ["Zoloto", "L&T", "Kirloskar", "Crayon", "Leader"]
     },
     {
         id: 4,
@@ -49,7 +52,8 @@ export const productData = [
             "Measuring Tools",
             "Tool Kits",
             "Power Tools (Drills, Grinders)"
-        ]
+        ],
+        companies: ["Taparia", "Jhalani", "Bosch", "Makita", "Dewalt"]
     },
     {
         id: 5,
@@ -62,7 +66,8 @@ export const productData = [
             "Ear Protection",
             "Safety Shoes",
             "Full Body Harness"
-        ]
+        ],
+        companies: ["Karam", "Udyogi", "Mallcom", "3M", "Honeywell"]
     },
     {
         id: 6,
@@ -75,6 +80,7 @@ export const productData = [
             "Sprockets",
             "Couplings",
             "Gears"
-        ]
+        ],
+        companies: ["SKF", "Timken", "FAG", "NBC", "Pix"]
     }
 ];
