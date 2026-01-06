@@ -1,9 +1,29 @@
 const mongoose = require('mongoose');
 
 const productSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  img: { type: String, required: true },
-  items: [{ type: String }] // Array of strings (e.g., "MIG Wires", "TIG Rods")
+    id: {
+        type: Number,
+        required: true,
+        unique: true
+    },
+    name: {
+        type: String,
+        required: true
+    },
+    img: {
+        type: String,
+        required: true
+    },
+    items: {
+        type: [String],
+        default: []
+    },
+    companies: {
+        type: [String],
+        default: []
+    }
 });
 
-module.exports = mongoose.model('Product', productSchema);
+const Product = mongoose.model('Product', productSchema);
+
+module.exports = Product;

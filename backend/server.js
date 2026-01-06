@@ -1,26 +1,32 @@
 const express = require('express');
+require('dotenv').config();
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+const Product = require('./models/Product');
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
-// app.use('/api/categories', require('./routes/categories'));
-app.use('/api/products', require('./routes/product'));
-// app.use('/api/testimonials', require('./routes/testimonials'));
-// app.use('/api/inquiries', require('./routes/inquiries'));
-
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_DB)
-  .then(() => console.log('MongoDB Connected Successfully'))
-  .catch(err => console.error('MongoDB connection error:', err));
+    .then(() => console.log('MongoDB connected'))
+    .catch(err => console.log(err));
 
-const PORT = process.env.PORT || 5000;
+// Routes
+// Get all products
+app.get('/api/products', async (req, res) => {
+    try {
+        const products = await Product.find().sort({ id: 1 });
+        res.json(products);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
