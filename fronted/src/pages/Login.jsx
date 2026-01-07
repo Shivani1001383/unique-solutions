@@ -7,16 +7,29 @@ const Login = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
-        // Allow ANY login for now as per user request
-        if (username.trim() !== '' && password.trim() !== '') {
-            localStorage.setItem('isAuthenticated', 'true');
-            // Store the username to show in the navbar later if needed
-            localStorage.setItem('currentUser', username);
-            navigate('/admin');
-        } else {
-            setError('Please enter a username and password.');
+        setError('');
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                localStorage.setItem('isAuthenticated', 'true');
+                localStorage.setItem('currentUser', username);
+                navigate('/admin');
+            } else {
+                setError(data.message || 'Invalid credentials');
+            }
+        } catch (err) {
+            console.error('Login error:', err);
+            setError('Login failed. Please check if backend is running.');
         }
     };
 

@@ -4,16 +4,13 @@ import ContactBar from '../components/ContactBar';
 import AboutUs from '../components/AboutUs';
 import ProductSection from '../components/ProductSection';
 import ProductModal from '../components/ProductModal';
-import Testimonials from '../components/Testimonials';
 import WhyChooseUs from '../components/WhyChooseUs';
 import MLACategories from '../components/MLACategories';
 import ContactForm from '../components/ContactForm';
 import Footer from '../components/Footer';
 
 // Hooks
-import { useInquiry } from '../hooks/useInquiry';
 import { useProductModal } from '../hooks/useProductModal';
-import { useTestimonials } from '../hooks/useTestimonials';
 
 const Home = () => {
     const { inquiryItems, addItemsToInquiry, removeFromInquiry, sendInquiry } = useInquiry();
@@ -26,7 +23,7 @@ const Home = () => {
         closeProductModal,
         handleQuantityChange
     } = useProductModal();
-    const { testimonials, visibleReviews, showMoreReviews } = useTestimonials();
+
 
     return (
         <div className="min-h-screen font-sans">
@@ -49,12 +46,6 @@ const Home = () => {
                 tempQuantities={tempQuantities}
                 handleQuantityChange={handleQuantityChange}
                 addItemsToInquiry={addItemsToInquiry}
-            />
-
-            <Testimonials
-                testimonials={testimonials}
-                visibleReviews={visibleReviews}
-                showMoreReviews={showMoreReviews}
             />
 
             <WhyChooseUs />

@@ -3,6 +3,27 @@ import InquiryList from './InquiryList';
 import { productData } from '../data';
 
 const ProductSection = ({ openProductModal, inquiryItems, removeFromInquiry, sendInquiry }) => {
+    const [products, setProducts] = React.useState([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        fetchProducts();
+    }, []);
+
+    const fetchProducts = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products`);
+            const data = await response.json();
+            setProducts(data);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching products:', error);
+            setLoading(false);
+        }
+    };
+
+    if (loading) return <div className="text-center py-20 text-xl font-bold text-gray-500">Loading Products...</div>;
+
     return (
         <section className="py-16 px-4 bg-white">
             <div className="max-w-7xl mx-auto text-center">
@@ -13,7 +34,7 @@ const ProductSection = ({ openProductModal, inquiryItems, removeFromInquiry, sen
                 <p className="text-xl text-gray-600 mb-12">Click on a product to view items and select quantities.</p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-                    {productData.map((product) => (
+                    {products.map((product) => (
                         <div
                             key={product.id}
                             onClick={() => openProductModal(product)}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 
-import { LayoutDashboard, Package, ShoppingCart, Settings, LogOut, ChevronDown, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Settings, LogOut, ChevronDown, ChevronRight, MessageSquare } from 'lucide-react';
 import uniqueLogo from '../../assets/uniqueLogo.png';
 
 const AdminSidebar = () => {
@@ -35,6 +35,7 @@ const AdminSidebar = () => {
                 { name: 'Pneumatics', path: '/admin/products/pneumatics' },
             ]
         },
+        { name: 'Inquiries', path: '/admin/inquiries', icon: <MessageSquare size={20} /> },
         { name: 'Orders', path: '/admin/orders', icon: <ShoppingCart size={20} /> },
         { name: 'Settings', path: '/admin/settings', icon: <Settings size={20} /> },
     ];
@@ -94,13 +95,13 @@ const AdminSidebar = () => {
             </nav>
 
             <div className="p-4 border-t border-purple-800 space-y-2">
-                <NavLink
+                {/* <NavLink
                     to="/"
                     className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-purple-200 hover:bg-purple-800 hover:text-white transition-colors"
                 >
                     <span className="text-xl">🏠</span>
                     <span className="font-medium">Go to Website</span>
-                </NavLink>
+                </NavLink> */}
 
                 <button
                     onClick={handleLogout}
