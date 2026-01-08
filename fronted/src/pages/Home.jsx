@@ -11,6 +11,7 @@ import Footer from '../components/Footer';
 
 // Hooks
 import { useProductModal } from '../hooks/useProductModal';
+import { useInquiry } from '../hooks/useInquiry';
 
 const Home = () => {
     const { inquiryItems, addItemsToInquiry, removeFromInquiry, sendInquiry } = useInquiry();
