@@ -1,12 +1,14 @@
 import React from 'react';
+import Navbar from '../components/Navbar';
 import Header from '../components/Header';
+import CompanyTicker from '../components/CompanyTicker';
 import ContactBar from '../components/ContactBar';
 import AboutUs from '../components/AboutUs';
 import ProductSection from '../components/ProductSection';
 import ProductModal from '../components/ProductModal';
 import WhyChooseUs from '../components/WhyChooseUs';
 import MLACategories from '../components/MLACategories';
-import ContactForm from '../components/ContactForm';
+import AuthorisedDealers from '../components/AuthorisedDealers';
 import Footer from '../components/Footer';
 
 // Hooks
@@ -27,7 +29,8 @@ const Home = () => {
 
 
     return (
-        <div className="min-h-screen font-sans">
+        <div className="min-h-screen font-sans" id="home">
+            <Navbar />
             <Header />
             <ContactBar />
             <AboutUs />
@@ -51,7 +54,7 @@ const Home = () => {
 
             <WhyChooseUs />
             <MLACategories />
-            <ContactForm />
+            <AuthorisedDealers />
             <Footer />
         </div>
     );

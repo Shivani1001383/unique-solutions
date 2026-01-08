@@ -2,7 +2,7 @@ import React from 'react';
 
 const MLACategories = () => {
     return (
-        <section className="py-16 px-4 bg-white">
+        <section id="categories" className="py-16 px-4 bg-white">
             <div className="max-w-7xl mx-auto">
                 <h2 className="text-4xl  md:text-5xl font-bold text-purple-800 text-center mb-12 relative inline-block">
                     Material Categories (MLA)

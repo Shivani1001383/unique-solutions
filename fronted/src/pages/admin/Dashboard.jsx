@@ -1,6 +1,9 @@
 import React from 'react';
 
+import InvoiceModal from '../../components/admin/InvoiceModal';
+
 const Dashboard = () => {
+    const [showInvoiceModal, setShowInvoiceModal] = React.useState(false);
     const [stats, setStats] = React.useState({
         totalProducts: 0,
         totalOrders: 0,
@@ -32,16 +35,25 @@ const Dashboard = () => {
         return <div className="p-10 text-center text-purple-600 font-bold text-xl">Loading Dashboard...</div>;
     }
 
-    const StatCard = ({ title, value, subText, valueColor = "text-purple-900", subTextColor = "text-gray-500" }) => (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+    const StatCard = ({ title, value, subText, valueColor = "text-purple-900", subTextColor = "text-gray-500", action }) => (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 relative">
             <p className="text-gray-500 text-sm font-medium">{title}</p>
             <h3 className={`text-3xl font-bold mt-2 ${valueColor}`}>{value}</h3>
             {subText && <p className={`text-sm mt-2 ${subTextColor}`}>{subText}</p>}
+            {action && (
+                <div className="mt-4 border-t pt-3">
+                    {action}
+                </div>
+            )}
         </div>
     );
 
     return (
         <div>
+            <InvoiceModal
+                isOpen={showInvoiceModal}
+                onClose={() => setShowInvoiceModal(false)}
+            />
             <h1 className="text-2xl font-bold text-gray-800 mb-6">Dashboard Overview</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -51,6 +63,14 @@ const Dashboard = () => {
                     value={`₹${stats.totalSale}`}
                     subText="Revenue generated"
                     valueColor="text-gray-800"
+                    action={
+                        <button
+                            onClick={() => setShowInvoiceModal(true)}
+                            className="text-xs font-semibold text-purple-600 hover:text-purple-800 flex items-center bg-purple-50 px-3 py-1.5 rounded-md hover:bg-purple-100 transition-colors w-full justify-center"
+                        >
+                            <span className="mr-1 text-base">+</span> Create Invoice
+                        </button>
+                    }
                 />
 
                 {/* 2. Total Orders */}

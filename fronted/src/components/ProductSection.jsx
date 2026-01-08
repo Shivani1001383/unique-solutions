@@ -25,7 +25,7 @@ const ProductSection = ({ openProductModal, inquiryItems, removeFromInquiry, sen
     if (loading) return <div className="text-center py-20 text-xl font-bold text-gray-500">Loading Products...</div>;
 
     return (
-        <section className="py-16 px-4 bg-white">
+        <section id="products" className="py-16 px-4 bg-white">
             <div className="max-w-7xl mx-auto text-center">
                 <h2 className="text-4xl md:text-5xl font-bold text-purple-800 mb-12 relative inline-block">
                     Our Products - Select for Inquiry
