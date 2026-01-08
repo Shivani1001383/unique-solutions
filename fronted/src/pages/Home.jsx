@@ -30,8 +30,8 @@ const Home = () => {
 
     return (
         <div className="min-h-screen font-sans" id="home">
-            <Navbar />
             <Header />
+            {/* <Navbar /> */}
             <ContactBar />
             <AboutUs />
 
