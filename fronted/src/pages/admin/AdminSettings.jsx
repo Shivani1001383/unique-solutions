@@ -28,7 +28,10 @@ const AdminSettings = () => {
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/update`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
                 body: JSON.stringify({
                     currentPassword: formData.currentPassword,
                     newUsername: formData.newUsername,
@@ -41,6 +44,9 @@ const AdminSettings = () => {
             if (data.success) {
                 setStatus({ type: 'success', message: 'Credentials updated successfully!' });
                 setFormData({ currentPassword: '', newUsername: '', newPassword: '', confirmPassword: '' });
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                }
             } else {
                 setStatus({ type: 'error', message: data.message || 'Update failed' });
             }

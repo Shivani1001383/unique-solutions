@@ -21,7 +21,11 @@ const Dashboard = () => {
 
     const fetchStats = async () => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/dashboard/stats`);
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/dashboard/stats`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
             const data = await response.json();
             setStats(data);
             setLoading(false);
@@ -127,12 +131,7 @@ const Dashboard = () => {
             </div>
 
             {/* Note about missing data */}
-            <div className="mt-6 bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg flex items-center gap-3">
-                <span className="text-xl">ℹ️</span>
-                <p className="text-sm">
-                    <strong>Note:</strong> Sale and Profit are ₹0 because product prices are not set.
-                </p>
-            </div>
+
         </div>
     );
 };

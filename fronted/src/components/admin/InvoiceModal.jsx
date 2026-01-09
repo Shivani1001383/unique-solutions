@@ -1,10 +1,76 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const InvoiceModal = ({ isOpen, onClose }) => {
+const InvoiceModal = ({ isOpen, onClose, initialData }) => {
     const [customerName, setCustomerName] = useState('');
     const [customerAddress, setCustomerAddress] = useState('');
     const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
-    const [items, setItems] = useState([{ product: '', quantity: 1, rate: 0 }]);
+    const [items, setItems] = useState([{ product: '', quantity: 1, rate: 0, amount: 0 }]);
+    const [invoiceNumber, setInvoiceNumber] = useState(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchNextInvoiceNumber();
+            if (initialData) {
+                setCustomerName(initialData.name || '');
+                // Address could be added if available in inquiry, currently assuming not in inquiry object structure seen
+                if (initialData.product) {
+                    setItems([{ product: initialData.product, quantity: 1, rate: 0, amount: 0 }]);
+                }
+            } else {
+                // Reset fields if opening fresh (optional, but good practice)
+                setCustomerName('');
+                setCustomerAddress('');
+                setItems([{ product: '', quantity: 1, rate: 0, amount: 0 }]);
+            }
+        }
+    }, [isOpen, initialData]);
+
+    const fetchNextInvoiceNumber = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/invoices/next`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+            });
+            const data = await res.json();
+            setInvoiceNumber(data.nextInvoiceNumber);
+        } catch (error) {
+            console.error('Error fetching invoice number:', error);
+        }
+    };
+
+    const handleSaveAndPrint = async () => {
+        if (!customerName.trim()) {
+            alert('Please enter a Customer Name and Product.');
+            return;
+        }
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/invoices`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    invoiceNumber,
+                    customerName,
+                    customerAddress,
+                    date: invoiceDate,
+                    items: items.map(item => ({ ...item, product: item.product, quantity: item.quantity, rate: item.rate, amount: item.quantity * item.rate })),
+                    totalAmount: calculateTotal()
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to save invoice');
+            }
+
+            window.print();
+            onClose();
+        } catch (error) {
+            console.error('Error saving invoice:', error);
+            alert(`Error: ${error.message}`);
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -46,10 +112,18 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                 <div className="flex justify-between items-start mb-8 border-b pb-6">
                     <div>
                         <h1 className="text-4xl font-bold text-gray-800">INVOICE</h1>
-                        <p className="text-gray-500 mt-0">Order #INV-{Math.floor(Math.random() * 10000)}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                            <label className="font-bold text-gray-700">Invoice No:</label>
+                            <input
+                                type="text"
+                                value={invoiceNumber || ''}
+                                readOnly
+                                className="border rounded p-1 w-32 bg-gray-50 text-gray-700 font-bold"
+                            />
+                        </div>
                     </div>
                     <div className="text-right">
-                        <h2 className="text-xl font-bold text-purple-700">Unique Solutions</h2>
+                        <h2 className="text-xl font-bold text-dark-700">Unique Solutions</h2>
                         <p className="text-gray-600">Gut No. 240, Apatgoan, Beed By Pass Road</p>
                         <p className="text-gray-600">Chhatrapati Sambhajinagar, Maharashtra, India</p>
                         <p className="text-gray-600">Phone: +91 8698126118</p>
@@ -186,10 +260,10 @@ const InvoiceModal = ({ isOpen, onClose }) => {
                         Cancel
                     </button>
                     <button
-                        onClick={handlePrint}
+                        onClick={handleSaveAndPrint}
                         className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium shadow-sm flex items-center"
                     >
-                        <span className="mr-2">🖨️</span> Print Invoice
+                        <span className="mr-2">🖨️</span> Save & Print Invoice
                     </button>
                 </div>
             </div>

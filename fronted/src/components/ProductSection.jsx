@@ -6,6 +6,8 @@ const ProductSection = ({ openProductModal, inquiryItems, removeFromInquiry, sen
     const [products, setProducts] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
 
+    const [search, setSearch] = React.useState('');
+
     React.useEffect(() => {
         fetchProducts();
     }, []);
@@ -27,6 +29,10 @@ const ProductSection = ({ openProductModal, inquiryItems, removeFromInquiry, sen
         }
     };
 
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(search.toLowerCase())
+    );
+
     if (loading) return <div className="text-center py-20 text-xl font-bold text-gray-500">Loading Products...</div>;
 
     return (
@@ -36,10 +42,27 @@ const ProductSection = ({ openProductModal, inquiryItems, removeFromInquiry, sen
                     Our Products - Select for Inquiry
                     <div className="absolute left-1/2 transform -translate-x-1/2 bottom-0 h-1 bg-purple-400 w-32 -mb-4"></div>
                 </h2>
-                <p className="text-xl text-gray-600 mb-12">Click on a product to view items and select quantities.</p>
+
+                <div className="max-w-md mx-auto mb-10">
+                    <input
+                        type="text"
+                        placeholder="Search products..."
+                        className="w-full px-4 py-3 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-md transition-all"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                </div>
+
+                {products.length === 0 ? (
+                    <p className="text-xl text-gray-600 mb-12">No products available.</p>
+                ) : filteredProducts.length === 0 ? (
+                    <p className="text-xl text-gray-600 mb-12">No products found matching "{search}".</p>
+                ) : (
+                    <p className="text-xl text-gray-600 mb-12">Click on a product to view items and select quantities.</p>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-                    {products.map((product) => (
+                    {filteredProducts.map((product) => (
                         <div
                             key={product.id}
                             onClick={() => openProductModal(product)}

@@ -23,6 +23,7 @@ const Login = () => {
             if (data.success) {
                 localStorage.setItem('isAuthenticated', 'true');
                 localStorage.setItem('currentUser', username);
+                localStorage.setItem('token', data.token);
                 navigate('/admin');
             } else {
                 setError(data.message || 'Invalid credentials');

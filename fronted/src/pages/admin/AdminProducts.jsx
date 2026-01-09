@@ -61,7 +61,12 @@ const AdminProducts = () => {
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
             try {
-                await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${id}`);
+                const config = {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                };
+                await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${id}`, config);
                 fetchProducts();
             } catch (error) {
                 console.error('Error deleting product:', error);
@@ -79,10 +84,16 @@ const AdminProducts = () => {
                 companies: formData.companies.split(',').map(company => company.trim()).filter(Boolean)
             };
 
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            };
+
             if (editingProduct) {
-                await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${editingProduct.id}`, payload);
+                await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products/${editingProduct.id}`, payload, config);
             } else {
-                await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products`, payload);
+                await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products`, payload, config);
             }
             closeModal();
             fetchProducts();
@@ -94,20 +105,43 @@ const AdminProducts = () => {
 
     if (loading) return <div className="p-10 text-center">Loading Products...</div>;
 
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // ... existing useEffect ...
+
+    // ... existing fetchProducts ...
+
+    // ... existing handlers ...
+
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // ...
+
     return (
         <div className="p-6">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                 <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
                     <Package className="text-purple-600" />
                     Product Management
                 </h1>
-                <button
-                    onClick={openAddModal}
-                    className="bg-purple-600 text-white px-6 py-3 rounded-lg flex items-center gap-2 hover:bg-purple-700 transition shadow-lg"
-                >
-                    <Plus size={20} />
-                    Add New Product
-                </button>
+                <div className="flex w-full md:w-auto gap-4">
+                    <input
+                        type="text"
+                        placeholder="Search products..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 outline-none w-full md:w-64"
+                    />
+                    <button
+                        onClick={openAddModal}
+                        className="bg-purple-600 text-white px-6 py-2 rounded-lg flex items-center gap-2 hover:bg-purple-700 transition shadow-lg whitespace-nowrap"
+                    >
+                        <Plus size={20} />
+                        Add New
+                    </button>
+                </div>
             </div>
 
             <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
@@ -122,7 +156,7 @@ const AdminProducts = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                        {products.map((product) => (
+                        {filteredProducts.map((product) => (
                             <tr key={product.id} className="hover:bg-gray-50 transition">
                                 <td className="p-4 font-semibold text-gray-600">#{product.id}</td>
                                 <td className="p-4">

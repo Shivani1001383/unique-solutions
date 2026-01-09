@@ -12,7 +12,11 @@ const AdminInquiries = () => {
     const fetchInquiries = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/inquiries`);
+            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/inquiries`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            });
             const data = await response.json();
             setInquiries(data);
             setLoading(false);
@@ -25,7 +29,12 @@ const AdminInquiries = () => {
     const handleDelete = async (id) => {
         if (window.confirm('Delete this inquiry?')) {
             try {
-                await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/inquiries/${id}`, { method: 'DELETE' });
+                await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/inquiries/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
                 fetchInquiries();
             } catch (error) {
                 console.error('Error deleting inquiry:', error);
