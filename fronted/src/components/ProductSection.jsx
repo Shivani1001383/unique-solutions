@@ -14,10 +14,15 @@ const ProductSection = ({ openProductModal, inquiryItems, removeFromInquiry, sen
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products`);
             const data = await response.json();
-            setProducts(data);
+            if (data && data.length > 0) {
+                setProducts(data);
+            } else {
+                setProducts(productData);
+            }
             setLoading(false);
         } catch (error) {
             console.error('Error fetching products:', error);
+            setProducts(productData);
             setLoading(false);
         }
     };
