@@ -60,12 +60,26 @@ const AdminSettings = () => {
     return (
         <div className="p-6 max-w-4xl mx-auto">
             <h1 className="text-3xl font-bold text-gray-800 mb-8 flex items-center gap-3">
-                <Settings className="text-purple-600" />
-                Account Settings
+                <User className="text-purple-600" />
+                My Profile & Settings
             </h1>
 
+            {/* Profile Card */}
+            <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 mb-6 flex items-center gap-4">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
+                    <User size={32} />
+                </div>
+                <div>
+                    <h2 className="text-xl font-bold text-gray-800">Admin User</h2>
+                    <p className="text-gray-500">Role: Owner / Superintendent</p>
+                    <p className="text-xs text-gray-400 mt-1">ID: #001</p>
+                </div>
+            </div>
+
             <div className="bg-white rounded-xl shadow-md border border-gray-100 p-8">
-                <h2 className="text-xl font-semibold mb-6 text-gray-700 border-b pb-4">Update Credentials</h2>
+                <h2 className="text-xl font-semibold mb-6 text-gray-700 border-b pb-4 flex items-center gap-2">
+                    <Lock size={20} /> Security Settings
+                </h2>
 
                 {status.message && (
                     <div className={`p-4 rounded-lg mb-6 ${status.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
@@ -140,6 +154,7 @@ const AdminSettings = () => {
                                     required
                                     placeholder="Confirm new password"
                                 />
+
                             </div>
                         </div>
                     )}

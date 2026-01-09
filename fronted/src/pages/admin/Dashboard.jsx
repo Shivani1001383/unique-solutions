@@ -58,7 +58,12 @@ const Dashboard = () => {
                 isOpen={showInvoiceModal}
                 onClose={() => setShowInvoiceModal(false)}
             />
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">Dashboard Overview</h1>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
+                <a href="/admin/settings" className="text-purple-600 hover:text-purple-800 font-semibold flex items-center gap-2">
+                    <span className="text-xl">👤</span> My Profile
+                </a>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* 1. Total Sale */}

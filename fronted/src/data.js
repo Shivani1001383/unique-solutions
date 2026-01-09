@@ -2,7 +2,7 @@ export const productData = [
     {
         id: 1,
         name: "Welding Rods",
-        img: "https://www.lawsonproducts.com/cdn/shop/files/DV_ZoomOriginal_I_CW1058A.jpg?v=1738907653&width=1264",
+        img: "https://www.mangalam.in/files/Rectangle_182614_1_f5cdf043-5d94-4a47-8040-5fa2c7376186.png",
         items: [
             "Mild Steel Electrodes",
             "Stainless Steel Rods",
